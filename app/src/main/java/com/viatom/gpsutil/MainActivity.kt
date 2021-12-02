@@ -1,17 +1,19 @@
 package com.viatom.gpsutil
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
+import android.location.*
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import com.viatom.gpsutil.databinding.ActivityMainBinding
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import java.lang.Exception
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,6 +23,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding= ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        //startActivity(Intent(this,TestLocationActivity::class.java))
         val locationManager = applicationContext.getSystemService(LOCATION_SERVICE) as LocationManager
        val  isGPSEnable = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
        val  isNetworkEnable = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
@@ -52,7 +55,7 @@ class MainActivity : AppCompatActivity() {
                     val longitude = location.getLongitude();
                     MainScope().launch {
                         Log.e("fuck2","$latitude    $longitude")
-                        binding.fuck.text="fuck2       $latitude    $longitude"
+                  //      binding.fuck.text="fuck2       $latitude    $longitude"
                     }
 
                 }
@@ -63,15 +66,42 @@ class MainActivity : AppCompatActivity() {
             Log.e("fuck2","0000")
            val location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (location != null) {
-
+                getAddress(location)
               val  latitude = location.getLatitude();
                val longitude = location.getLongitude();
                 Log.e("fuck","$latitude    $longitude")
                 MainScope().launch {
                     Log.e("fuck2","$latitude    $longitude")
-                    binding.fuck.text="fuck1       $latitude    $longitude"
+                 //   binding.fuck.text="fuck1       $latitude    $longitude"
                 }
             }
         }
+    }
+
+    private fun getAddress(location: Location?): List<Address?>? {
+        var result: List<Address?>? = null
+        try {
+            if (location != null) {
+                val gc = Geocoder(this, Locale.getDefault())
+                result = gc.getFromLocation(
+                    location.latitude,
+                    location.longitude, 1
+                )
+              //  Toast.makeText(this, "获取地址信息：$result", Toast.LENGTH_LONG).show()
+              //  Log.v("TAG", "获取地址信息：$result")
+                MainScope().launch {
+                    var fuck=""
+                    for(k in 0..3){
+                        fuck+=result[0]!!.getAddressLine(k)
+                    }
+
+
+                    binding.fuck.text=fuck
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return result
     }
 }
